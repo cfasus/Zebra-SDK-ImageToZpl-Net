@@ -18,14 +18,14 @@
 step:
 1.Create Bitmap：bitmap			//创建你的位图																												
 2.ZebraImageI image = Zebra.Sdk.Graphics.ZebraImageFactory.GetImage(imagePath/imageData); //SDK方法
-	//建议使用imageData：不需要保存为具体图片了，节省IO操作，提高代码效率
+  //建议使用imageData：不需要保存为具体图片了，节省IO操作，提高代码效率
   MemoryStream ms_read = new MemoryStream();
   imageData= bitmap.Save(ms_read, ImageFormat.Bmp);
 3.MemoryStream memoryStream = new MemoryStream();													//接收SDK生成的B64数据
   string fileName = "fileName";																						//在zpl中缓存的文件名称，随意
   PrinterUtil.ConvertGraphic(fileName + ".png", image, memoryStream);			//SDK方法
-	string b64_str = Encoding.Default.GetString(memoryStream.GetBuffer());
-4.//不要过分相信b64_str，SDK生成的string包含很多怪异字符，需要在调试过程中把需要replace的字符copy后使用Replace处理下
+  string b64_str = Encoding.Default.GetString(memoryStream.GetBuffer());
+4.不要过分相信b64_str，SDK生成的string包含很多怪异字符，需要在调试过程中把需要replace的字符copy后使用Replace处理下
   b64_str=b64_str.Replace("\u001f", "").Replace("\0", "").Replace("", ""); 
 5.var arr_data = b64_str.Split(':');
   var data_count = arr_data[1].ToString().Replace("qrpp", "");
