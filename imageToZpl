@@ -1,0 +1,43 @@
+/***
+*
+* 为了开发少走弯路，特此建立此项目（Bitmap to B64）。
+*
+* Zebra官方回复：
+* 1.只有.NET framework 4.7 版本SDK，其他没有；Java没问。
+* 2.官方SDK只能生成B64编码压缩，没有生成Z64编码的方法,如有你有生成Z64编码的方法，请告知，万分感谢。
+* 
+* 测试：
+* 1.网上能搜索到的Zebra SDK提问和解决办法，能参考的很少，建议不用搜了。
+* 2.不要盲目相信官方工具，如：ZebraNet Bridge，ZebraDesigner 2。
+* 3.不要过分相信或follow官方<<zpl-zbi2-pm-en>>中B64/Z64描述，相关LZ77也不需要太深入了解。
+* 3.信我，没错。
+*
+*
+*/
+
+step:
+1.Create Bitmap：bitmap			//创建你的位图																												
+2.ZebraImageI image = Zebra.Sdk.Graphics.ZebraImageFactory.GetImage(imagePath/imageData); //SDK方法
+	//建议使用imageData：不需要保存为具体图片了，节省IO操作，提高代码效率
+  MemoryStream ms_read = new MemoryStream();
+  imageData= bitmap.Save(ms_read, ImageFormat.Bmp);
+3.MemoryStream memoryStream = new MemoryStream();													//接收SDK生成的B64数据
+  string fileName = "fileName";																						//在zpl中缓存的文件名称，随意
+  PrinterUtil.ConvertGraphic(fileName + ".png", image, memoryStream);			//SDK方法
+	string b64_str = Encoding.Default.GetString(memoryStream.GetBuffer());
+4.//不要过分相信b64_str，SDK生成的string包含很多怪异字符，需要在调试过程中把需要replace的字符copy后使用Replace处理下
+  b64_str=b64_str.Replace("\u001f", "").Replace("\0", "").Replace("", ""); 
+5.var arr_data = b64_str.Split(':');
+  var data_count = arr_data[1].ToString().Replace("qrpp", "");
+  zpl_txt.Append("~DYR:"); 				//参考<<zpl-zbi2-pm-en>>"~DY"命令
+  zpl_txt.Append(fileName);
+  zpl_txt.Append(".PNG,p,p,");		//参考<<zpl-zbi2-pm-en>>
+  zpl_txt.Append(data_count); 		//追加B64字节数
+  zpl_txt.Append(",,:B64:");			//",,"不可省略
+  zpl_txt.Append(arr_data[3]);		//追加B64编码内容
+  zpl_txt.Append(":");
+  zpl_txt.Append(arr_data[4]);		//追加B64内容
+  zpl_txt.Append("^XA^FO,0^XGR:");//参考<<zpl-zbi2-pm-en>>"^XG"命令
+  zpl_txt.Append(fileName);
+  zpl_txt.Append(".PNG^FS^XZ");
+6.over 强烈推荐http://labelary.com/viewer.html 实时预览zpl
